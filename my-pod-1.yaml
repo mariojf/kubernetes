@@ -1,0 +1,20 @@
+# meu primeiro YAML file. 24.08.2026.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod-webserver
+  labels:
+    apps: my-app
+    tier: frontend
+
+spec:
+  containers:
+  - name: my-container-nginx
+    image: nginx
+  - name: my-container-web2
+    image: hashicorp/http-echo:latest
+    args:
+      - "-text=Ola, este eh o meu segundo container!"
+      - "-listen=:5678"
+    ports:
+      - containerPort: 5678 

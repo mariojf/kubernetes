@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+
+metadata:
+  name: backend-ns
+  ####### namespace: <nome do name space>  ## Definição do namespace usando o yaml file.
+  labels:
+    apps: backend-apps
+
+
+    
