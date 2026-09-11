@@ -1,0 +1,31 @@
+# Daemon set file - um pod por node no cluster
+apiVersion: apps/v1
+kind: DaemonSet
+metadata: 
+  name: my-daemonset
+  labels:
+    app: frontend
+
+spec:
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 2
+    type: RollingUpdate
+
+  template:
+    metadata:
+      name: my-pod-webserver
+      labels:
+        apps: my-app
+        tier: frontend
+
+    spec:
+      containers:
+      - name: my-container-nginx
+        image: nginx
+
+  selector: 
+    matchLabels:
+      apps: my-app
+

@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: my-cronjob
+spec:
+  suspend: true     #Boa pratica para nao disparar o uso de pods ... e vc habilita sobre comando pra testar
+  failedJobsHistoryLimit: 5
+  successfulJobsHistoryLimit: 10
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      completions: 10
+      completionMode: "Indexed"
+      template:
+        spec:
+          containers:
+          - name: my-container-busybox
+            image: busybox
+            command:
+            - "bin/sh"
+            - "-c"
+            - "for i in 1 2 3; do echo Lucky number $i = $((1 + RANDOM % 60)); done"
+          restartPolicy: Never

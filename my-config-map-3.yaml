@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-cm-vol
+  namespace: default
+data:
+  # Configuração de banco de dados
+  database: mariadb
+  database_url: mariadb://localhost:3306
+
+

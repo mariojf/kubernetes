@@ -1,0 +1,12 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: my-cm
+  namespace: default
+data:
+  # Configuração de banco de dados
+  my.config.db: |
+    database: mongodb
+    database_url: mongodb://localhost:3306
+  teste.field: hello
+

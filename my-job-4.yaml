@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata: 
+  name: my-job
+spec:
+  completions: 12
+  completionMode: "Indexed"
+  parallelism: 5
+  #  restartPolicy: Never   #Erro proposital para demonstrar que essa politica é do POD e nao do JOB !!!
+  template:
+    metadata:
+      name: my-job-pod
+    spec:
+      containers:
+      - name: my-container-busybox
+        image: busybox
+        command:
+        - "bin/sh"
+        - "-c"
+        - "for i in 1 2 3 4 5 6; do echo Lucky number $i = $((1 + RANDOM % 60)); done"
+      restartPolicy: Never

@@ -1,0 +1,11 @@
+kind: ConfigMap
+apiVersion: v1
+metadata: 
+  name: my-cm-immut
+data:
+  #Connection database config mariadb
+  my.config.db: |
+    database: mariadb
+    database_uri: mariadb://localhost:3306
+  test.field: Ola, como vai xaropinho?
+  teste.field2: agora foi
