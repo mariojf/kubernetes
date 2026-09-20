@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: my-endpoints-service
+subsets:
+  - addresses:
+      - ip: 77.68.88.76    # Servidor externo obtido atraves de consulta a servidores publicos  https:/public-dns.info/nameserver/gb.html
+        #- ip: 10.244.1.31    #apache
+        #- ip: 10.244.1.30    #nginx
+    ports: 
+      - port: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-endpoints-service
+spec:
+  ports: 
+    - protocol: TCP
+      port: 80
+      targetPort: 80

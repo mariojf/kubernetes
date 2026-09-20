@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador de Treinamento GIA — Canonical-style</title>
+<style>
+  body{font-family:Arial,Helvetica,sans-serif;background:#f3f3f5;margin:0;color:#222}
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+  .card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px #0001;margin-bottom:18px}
+  h1{margin-top:0}.purple{color:#7251d6}.timer{font-size:30px;font-weight:700;text-align:center;margin:12px}
+  button{border:0;border-radius:10px;padding:13px 20px;font-size:17px;cursor:pointer;background:#7251d6;color:white}
+  button.secondary{background:#ddd;color:#222}.hidden{display:none}
+  .q{border:1px solid #ddd;border-radius:10px;padding:14px;margin:10px 0}
+  .q strong{display:block;margin-bottom:9px}.opts{display:flex;gap:8px;flex-wrap:wrap}
+  .opts button{min-width:80px;padding:10px 14px;background:#eee;color:#222}
+  .opts button.sel{background:#7251d6;color:#fff}
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .pair{font-family:monospace;font-size:28px;text-align:center;line-height:1.25}
+  .numrow{display:flex;gap:18px;justify-content:center;font-size:34px;font-weight:bold}
+  .words{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+  .word{font-size:24px;padding:14px 22px;border:2px solid #ddd;border-radius:10px}
+  .spatial{display:flex;gap:45px;justify-content:center;align-items:center}
+  .spatial .col{display:flex;flex-direction:column;gap:10px;align-items:center}
+  .glyph{font-size:72px;font-family:Arial,sans-serif;font-weight:bold;display:inline-block;width:80px;text-align:center}
+  .rot90{transform:rotate(90deg)} .rot180{transform:rotate(180deg)} .rot270{transform:rotate(270deg)}
+  .result{font-size:18px;line-height:1.5}.score{font-size:34px;font-weight:bold}
+  .small{color:#666;font-size:14px}.bar{height:16px;background:#ddd;border-radius:10px;overflow:hidden}.fill{height:100%;background:#7251d6}
+  @media(max-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="card" id="intro">
+<h1><span class="purple">Simulador de Treinamento GIA</span></h1>
+<p><b>Diagnóstico no estilo Canonical</b>, baseado nas regras das cinco seções do material que você forneceu. Todas as questões abaixo são originais e foram criadas para treinamento; não são cópias da Thomas nem do site externo.</p>
+<ul>
+<li>Seção 1 — Raciocínio: <b>8 questions / 30 seconds</b></li>
+<li>Seção 2 — Velocidade Perceptiva: <b>8 questions / 25 seconds</b></li>
+<li>Seção 3 — Velocidade e Precisão Numérica: <b>8 questions / 40 seconds</b></li>
+<li>Seção 4 — Significado das Palavras: <b>8 questions / 30 seconds</b></li>
+<li>Seção 5 — Visualização Espacial: <b>8 questions / 40 seconds</b></li>
+</ul>
+<p class="small">O simulador avalia precisão e velocidade. Na Seção 1, cada questão tem uma tela de memorização seguida por uma tela de pergunta, seguindo a estrutura mostrada no seu material.</p>
+<button onclick="start()">Iniciar diagnóstico</button>
+</div>
+
+<div class="card hidden" id="app">
+<div id="timer" class="timer">00.00</div>
+<div id="content"></div>
+</div>
+</div>
+
+<script>
+const sections = [
+ {name:"Seção 1 — Raciocínio", time:30, type:"reasoning"},
+ {name:"Seção 2 — Velocidade Perceptiva", time:25, type:"perceptual"},
+ {name:"Seção 3 — Velocidade e Precisão Numérica", time:40, type:"number"},
+ {name:"Seção 4 — Significado das Palavras", time:30, type:"word"},
+ {name:"Seção 5 — Visualização Espacial", time:40, type:"spatial"}
+];
+
+const data = {
+reasoning:[
+ ["Ana é mais velha que Bruno.","Quem é mais jovem?","Ana","Bruno",1],
+ ["Marcos não é tão alto quanto Davi.","Quem é mais alto?","Marcos","Davi",1],
+ ["Lívia é mais rápida que Tiago.","Quem é mais lento?","Lívia","Tiago",1],
+ ["Paulo é mais jovem que Sara.","Quem é mais velho?","Paulo","Sara",1],
+ ["Emma não é tão pesada quanto Júlia.","Quem é mais pesada?","Emma","Júlia",1],
+ ["João é mais velho que Pedro, e Pedro é mais velho que Alan.","Quem é o mais jovem?","João","Alan",1],
+ ["Mia é mais baixa que Nina, e Nina é mais baixa que Olívia.","Quem é mais alta?","Mia","Olívia",1],
+ ["Roberto é mais rápido que Samuel, mas Samuel é mais rápido que Léo.","Quem é o mais lento?","Roberto","Léo",1]
+],
+perceptual:[
+ [["k","t","m","n"],["K","J","W","N"],1],
+ [["b","R","q","L"],["B","r","Q","x"],3],
+ [["G","a","T","p"],["g","A","t","P"],4],
+ [["d","M","v","S"],["D","N","V","s"],3],
+ [["H","c","y","F"],["h","C","Y","Z"],3],
+ [["w","E","r","K"],["W","e","R","k"],4],
+ [["P","n","J","x"],["p","m","j","X"],3],
+ [["a","Q","L","z"],["A","q","L","Z"],4]
+],
+number:[
+ [[9,4,1],0],
+ [[12,7,20],2],
+ [[18,25,11],1],
+ [[31,14,22],0],
+ [[6,19,13],1],
+ [[40,28,35],0],
+ [[17,9,26],2],
+ [[33,21,27],0]
+],
+word:[
+ [["Folha","Tambor","Bolota"],1],
+ [["Maçã","Pera","Martelo"],2],
+ [["Rio","Oceano","Bicicleta"],2],
+ [["Águia","Pardal","Cenoura"],2],
+ [["Cobre","Ferro","Banana"],2],
+ [["Piano","Violino","Janela"],2],
+ [["Rosa","Tulipa","Notebook"],2],
+ [["Tubarão","Golfinho","Montanha"],2]
+],
+spatial:[
+ // Each item: [rotationFlagPair1, rotationFlagPair2, acertosAnswer].
+ // 1 = second character is a rotated version of the first; 0 = not a rotated version.
+ [0,0,0],[0,1,1],[1,1,2],[0,1,1],
+ [1,0,1],[0,0,0],[1,0,1],[1,1,2]
+]
+};
+
+let sec=0, q=0, score=0, answered=0, startTime=0, endTime=0, timerId=null, selected=null, results=[];
+let reasonStage="memorize";
+
+function fmt(x){return x.toFixed(2);}
+function start(){
+ document.getElementById("intro").classList.add("hidden");
+ document.getElementById("app").classList.remove("hidden");
+ sec=0; q=0; results=[]; beginSection();
+}
+function beginSection(){
+ q=0; score=0; answered=0; selected=null; reasonStage="memorize";
+ startTime=performance.now(); endTime=startTime+sections[sec].time*1000;
+ render();
+ clearInterval(timerId); timerId=setInterval(tick,20); tick();
+}
+function tick(){
+ const rem=Math.max(0,endTime-performance.now());
+ document.getElementById("timer").textContent=(rem/1000).toFixed(2);
+ if(rem<=0){clearInterval(timerId);finishSection();}
+}
+function render(){
+ const s=sections[sec], c=document.getElementById("content");
+ let html=`<h2 class="purple">${s.name}</h2><p>Questão ${Math.min(q+1,8)} / 8</p>`;
+ if(s.type==="reasoning") html+=renderReasoning();
+ if(s.type==="perceptual") html+=renderPerceptual();
+ if(s.type==="number") html+=renderNumber();
+ if(s.type==="word") html+=renderWord();
+ if(s.type==="spatial") html+=renderSpatial();
+ c.innerHTML=html;
+}
+function renderReasoning(){
+ const item=data.reasoning[q];
+ if(reasonStage==="memorize"){
+   return `<div class="card"><h3>Memorize esta afirmação</h3><p style="font-size:28px;text-align:center"><b>${item[0]}</b></p><p class="small">Quando estiver pronto, clique em Continuar. A afirmação desaparecerá.</p><button onclick="reasonQuestion()">Continuar</button></div>`;
+ }
+ return `<div class="card"><h3>${item[1]}</h3><div class="opts"><button onclick="answerReason(0)">${item[2]}</button><button onclick="answerReason(1)">${item[3]}</button></div></div>`;
+}
+function reasonQuestion(){reasonStage="question";render();}
+function answerReason(i){
+ answered++; if(i===data.reasoning[q][4]) score++;
+ nextQ();
+}
+function renderPerceptual(){
+ const [a,b,ans]=data.perceptual[q];
+ return `<div class="grid">${a.map((x,i)=>`<div class="q pair">${x}<br>${b[i]}</div>`).join("")}</div>
+ <p><b>Quantos pares verticais contêm a mesma letra?</b></p>
+ <div class="opts">${[0,1,2,3,4].map(i=>`<button onclick="answer(${i},${ans})">${i}</button>`).join("")}</div>`;
+}
+function renderNumber(){
+ const [nums,ans]=data.number[q];
+ return `<div class="numrow">${nums.map(n=>`<span>${n}</span>`).join("")}</div>
+ <p><b>Qual número está mais distante da mediana?</b></p>
+ <div class="opts">${nums.map((n,i)=>`<button onclick="answer(${i},${ans})">${n}</button>`).join("")}</div>`;
+}
+function renderWord(){
+ const [w,ans]=data.word[q];
+ return `<div class="words">${w.map((x,i)=>`<button class="word" onclick="answer(${i},${ans})">${x}</button>`).join("")}</div>
+ <p><b>Qual palavra não pertence ao grupo?</b></p>`;
+}
+function glyph(rot){return `<span class="glyph ${rot===90?'rot90':rot===180?'rot180':rot===270?'rot270':''}">P</span>`;}
+function renderSpatial(){
+ const item=data.spatial[q], r1=item[0], r2=item[1], ans=item[2];
+ const pair=(flag)=>`<div class="col"><span class="glyph">P</span><span class="glyph ${flag?'rot180':'rot90'}">P</span></div>`;
+ return `<div class="spatial">${pair(r1)}${pair(r2)}</div>
+ <p><b>Quantos dos 2 pares verticais contêm versões rotacionadas da mesma letra?</b></p>
+ <div class="opts">${[0,1,2].map(i=>`<button onclick="answer(${i},${ans})">${i}</button>`).join("")}</div>`;
+}
+function answer(i,ans){
+ answered++; if(i===ans) score++; nextQ();
+}
+function nextQ(){
+ q++;
+ if(q>=8){finishSection();return;}
+ selected=null; if(sections[sec].type==="reasoning")reasonStage="memorize";
+ render();
+}
+function finishSection(){
+ clearInterval(timerId);
+ const elapsed=Math.min(sections[sec].time,(performance.now()-startTime)/1000);
+ results.push({name:sections[sec].name,score,answered,elapsed,time:sections[sec].time});
+ sec++;
+ if(sec<sections.length){beginSection();} else {showResults();}
+}
+function showResults(){
+ document.getElementById("timer").textContent="DONE";
+ let totalScore=results.reduce((a,r)=>a+r.score,0);
+ let totalAns=results.reduce((a,r)=>a+r.answered,0);
+ let html=`<h2 class="purple">Resultado do diagnóstico</h2><div class="score">${totalScore} / 40 acertos</div>
+ <p>Respondidas: ${totalAns} / 40</p>`;
+ results.forEach(r=>{
+   const pct=Math.round(r.score/8*100);
+   const speed=r.answered/(r.elapsed/60);
+   html+=`<div class="q"><b>${r.name}</b><br>${r.score}/8 acertos (${pct}%) · ${r.answered} answered · ${speed.toFixed(1)} questions/min
+   <div class="bar"><div class="fill" style="width:${pct}%"></div></div></div>`;
+ });
+ html+=`<div class="card result"><h3>Como interpretar</h3>
+ <p><b>Precisão baixa:</b> treine primeiro a regra da tarefa e depois acrescente pressão de tempo.</p>
+ <p><b>Precisão alta + poucas questões respondidas:</b> sua prioridade é velocidade e automatização.</p>
+ <p><b>Precisão alta + velocidade:</b> mantenha a habilidade e concentre-se na consistência.</p>
+ <p><b>Section 1:</b> separe erros de memória/relação de erros de velocidade de leitura.</p>
+ <p><b>Sections 2–5:</b> use exercícios curtos e repetidos em vez de sessões longas.</p>
+ </div>
+ <button onclick="location.reload()">Executar novamente</button>`;
+ document.getElementById("content").innerHTML=html;
+}
+</script>
+</body>
+</html>

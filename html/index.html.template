@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>GIA Canonical Training Simulator</title>
+</head>
+
+<body>
+
+    <h1>GIA Canonical Training Simulator</h1>
+
+    <p>Pod que está atendendo esta requisição:</p>
+
+    <h2 id="hostname">identificando...</h2>
+
+    <p>
+        <a href="GIA_Canonical_Training_Simulator.html">
+            Iniciar treinamento
+        </a>
+    </p>
+
+</body>
+</html>
