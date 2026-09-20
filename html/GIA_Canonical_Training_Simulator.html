@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GIA — Treinamento V4 — 1000 variantes por seção</title>
+<title>GIA — Treinamento V4.8 — 1000 variantes por seção</title>
 <style>
 body{font-family:Arial,Helvetica,sans-serif;background:#f3f3f5;margin:0;color:#222}
 .wrap{max-width:1000px;margin:24px auto;padding:0 16px}.card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px #0001;margin-bottom:18px}
@@ -20,14 +20,15 @@ button.secondary{background:#ddd;color:#222}.hidden{display:none}.q{border:1px s
 .glyph{font-size:72px;font-family:Arial,sans-serif;font-weight:bold;display:inline-block;width:85px;height:85px;line-height:85px;text-align:center}
 .result{font-size:18px;line-height:1.5}.score{font-size:34px;font-weight:bold}
 .small{color:#666;font-size:14px}.bar{height:16px;background:#ddd;border-radius:10px;overflow:hidden}.fill{height:100%;background:#7251d6}
-.meta{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;color:#555}
+.meta{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;color:#555}.result .q{margin-top:12px}
 @media(max-width:700px){.perceptual{gap:8px;font-size:24px}.spatial{gap:15px}.glyph{font-size:58px}}
-</style>
+
+.spatial-pairs{display:flex;justify-content:center;gap:36px;margin:18px 0}.spatial-pair{display:flex;flex-direction:column;gap:8px}.spatial-cell{width:100px;height:80px;border:1px solid #ddd;border-radius:10px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:700}.spatial-letter{font-size:42px;font-weight:700;line-height:1}</style>
 </head>
 <body>
 <div class="wrap">
 <div class="card" id="intro">
-<h1><span class="purple">Simulador GIA — Treinamento V4</span></h1>
+<h1><span class="purple">Simulador GIA — Treinamento V4.8</span></h1>
 <p><b>Banco procedural de treinamento.</b> As questões são geradas localmente a partir de regras e vocabulários originais de treino; não são cópias de itens proprietários.</p>
 <ul>
 <li>Seção 1 — Raciocínio: 8 itens / 30 s</li>
@@ -45,6 +46,9 @@ button.secondary{background:#ddd;color:#222}.hidden{display:none}.q{border:1px s
 <button onclick="start()">Iniciar</button>
 </div>
 <div class="card hidden" id="app">
+<div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+<button class="secondary" onclick="interruptTest()">Interromper teste</button>
+</div>
 <div id="timer" class="timer">0.00 s</div>
 <div id="content"></div>
 </div>
@@ -61,12 +65,24 @@ const sections=[
 
 const names=["Ana","Bruno","Carlos","Daniel","Elisa","Felipe","Gabriela","Helena","Igor","Joana","Karen","Lucas","Marina","Nuno","Olívia","Paulo","Rafael","Sara","Tiago","Úrsula","Vítor","Yara","Zeca","Alice","Beatriz","Caio","Diana","Eduardo","Flávia","Gustavo","Hugo","Isabela","Júlia","Leandro","Marta","Nicolas","Patrícia","Renato","Sofia","Teresa","Valter","Wesley","Adriana","Bianca","Cláudio","Débora","Fernando","Lívia","Roberto","Vanessa"];
 const attrs=[
-["velho","mais velho","mais jovem"],["alto","mais alto","mais baixo"],["forte","mais forte","mais fraco"],
-["rápido","mais rápido","mais lento"],["pesado","mais pesado","mais leve"],["largo","mais largo","mais estreito"],
-["longo","mais longo","mais curto"],["rico","mais rico","mais pobre"],["claro","mais claro","mais escuro"],
-["quente","mais quente","mais frio"],["grande","maior","menor"],["barulhento","mais barulhento","mais silencioso"],
-["cedo","mais cedo","mais tarde"],["duro","mais duro","mais macio"],["alto","mais alto","mais baixo"],
-["próximo","mais próximo","mais distante"],["rápido","mais rápido","mais lento"],["jovem","mais jovem","mais velho"]
+  ["velho","mais velho","mais jovem"],
+  ["alto","mais alto","mais baixo"],
+  ["forte","mais forte","mais fraco"],
+  ["rápido","mais rápido","mais lento"],
+  ["pesado","mais pesado","mais leve"],
+  ["rico","mais rico","mais pobre"],
+  ["grande","maior","menor"],
+  ["barulhento","mais barulhento","mais silencioso"],
+  ["calmo","mais calmo","mais agitado"],
+  ["paciente","mais paciente","mais impaciente"],
+  ["cuidadoso","mais cuidadoso","mais descuidado"],
+  ["atento","mais atento","mais distraído"],
+  ["educado","mais educado","mais mal-educado"],
+  ["corajoso","mais corajoso","mais medroso"],
+  ["generoso","mais generoso","mais egoísta"],
+  ["alegre","mais alegre","mais triste"],
+  ["organizado","mais organizado","mais desorganizado"],
+  ["experiente","mais experiente","menos experiente"]
 ];
 const data={reasoning:[],perceptual:[],number:[],word:[],spatial:[]};
 
@@ -75,23 +91,43 @@ function pick(a){return a[Math.floor(Math.random()*a.length)]}
 
 /* SECTION 1 — procedural reasoning */
 function makeReasoning(){
- let a=pick(names), b=pick(names); while(b===a)b=pick(names);
- let rel=pick(attrs), stronger=Math.random()<.5;
- let statement, question, answer;
- if(Math.random()<.25){
-   statement=`${a} é ${rel[1]} que ${b}.`;
-   question=`Quem é ${stronger?rel[1]:rel[2]}?`;
-   answer=stronger?0:1;
- }else if(Math.random()<.5){
-   statement=`${a} não é tão ${rel[0]} quanto ${b}.`;
-   question=`Quem é ${rel[2]}?`;
-   answer=0;
- }else{
-   statement=`${a} é ${rel[1]} que ${b}.`;
-   question=`Quem é ${rel[2]}?`;
-   answer=1;
- }
- return [statement,question,a,b,answer];
+  let a=pick(names), b=pick(names);
+  while(b===a)b=pick(names);
+
+  const rel=pick(attrs);
+  const mode=Math.random();
+  let statement, question, correctName;
+
+  // Keep every generated sentence semantically valid:
+  // rel[0] is the base adjective; rel[1] = higher; rel[2] = lower.
+  if(mode<0.34){
+    statement=`${a} é ${rel[1]} que ${b}.`;
+    correctName= a;
+    question=Math.random()<0.5
+      ? `Quem é ${rel[1]}?`
+      : `Quem não é ${rel[1]}?`;
+    // For "quem não é mais X", the other person is correct.
+    if(question.includes("não")) correctName=b;
+  }else if(mode<0.67){
+    statement=`${a} é ${rel[2]} que ${b}.`;
+    correctName= b;
+    question=Math.random()<0.5
+      ? `Quem é ${rel[1]}?`
+      : `Quem é ${rel[2]}?`;
+    if(question.includes(rel[2])) correctName=a;
+  }else{
+    statement=`${a} não é tão ${rel[0]} quanto ${b}.`;
+    // This means b is more [attribute] than a.
+    const askHigher=Math.random()<0.5;
+    question=askHigher ? `Quem é ${rel[1]}?` : `Quem é ${rel[2]}?`;
+    correctName=askHigher ? b : a;
+  }
+
+  // Randomize the displayed answer order independently of the statement.
+  const options=shuffle([a,b]);
+  const correctIndex=options.indexOf(correctName);
+
+  return [statement,question,options[0],options[1],correctIndex];
 }
 
 /* SECTION 2 — 4 vertical pairs; intentionally many repeated letters.
@@ -162,39 +198,120 @@ ações:["correr","andar","saltar","nadar","comer","beber","dormir","ler","escre
 idioma:["palavra","frase","verbo","substantivo","adjetivo","pronome","artigo","preposição","advérbio","sí­laba","letra","texto","livro","poema","conto","romance","título","parágrafo"]
 };
 
+
+const semanticPairs=[
+ ["alegre","feliz","triste"],
+ ["rápido","veloz","lento"],
+ ["forte","robusto","fraco"],
+ ["grande","enorme","pequeno"],
+ ["bonito","belo","feio"],
+ ["inteligente","esperto","tolo"],
+ ["calmo","tranquilo","agitado"],
+ ["cuidadoso","zeloso","descuidado"],
+ ["corajoso","valente","covarde"],
+ ["generoso","altruísta","egoísta"],
+ ["organizado","arrumado","desorganizado"],
+ ["atento","vigilante","distraído"],
+ ["difícil","complicado","fácil"],
+ ["simples","fácil","complicado"],
+ ["começar","iniciar","terminar"],
+ ["comprar","adquirir","vender"],
+ ["entrar","adentrar","sair"],
+ ["aceitar","concordar","recusar"],
+ ["lembrar","recordar","esquecer"],
+ ["aumentar","crescer","diminuir"],
+ ["aproximar","chegar","afastar"],
+ ["permitir","autorizar","proibir"],
+ ["construir","edificar","destruir"],
+ ["verdadeiro","real","falso"],
+ ["antigo","velho","novo"],
+ ["começo","início","fim"],
+ ["alegria","felicidade","tristeza"],
+ ["medo","temor","coragem"],
+ ["silêncio","quietude","barulho"]
+];
+
 const cats=Object.keys(vocab);
 function makeWord(){
- let c1=pick(cats), c2=pick(cats); while(c2===c1)c2=pick(cats);
- let a=pick(vocab[c1]), b=pick(vocab[c1]); while(b===a)b=pick(vocab[c1]);
- let odd=pick(vocab[c2]); while(odd===a||odd===b)odd=pick(vocab[c2]);
- return [[a,b,odd],2];
+ const r=Math.random();
+
+ // ~1/3: synonym pair + unrelated intruder
+ if(r<0.34){
+   const pair=pick(semanticPairs);
+   let c=pick(cats);
+   let odd=pick(vocab[c]);
+   while(pair.includes(odd)){ c=pick(cats); odd=pick(vocab[c]); }
+   const words=shuffle([pair[0],pair[1],odd]);
+   return [words,words.indexOf(odd),
+     `"${pair[0]}" e "${pair[1]}" são sinônimos. "${odd}" não participa dessa relação e é a intrusa.`];
+ }
+
+ // ~1/3: antonym pair + unrelated intruder
+ if(r<0.68){
+   const pair=pick(semanticPairs);
+   let c=pick(cats);
+   let odd=pick(vocab[c]);
+   while(pair.includes(odd)){ c=pick(cats); odd=pick(vocab[c]); }
+   const words=shuffle([pair[0],pair[2],odd]);
+   return [words,words.indexOf(odd),
+     `"${pair[0]}" e "${pair[2]}" são antônimos, isto é, têm sentidos opostos. "${odd}" não participa dessa relação e é a intrusa.`];
+ }
+
+ // ~1/3: same semantic category + intruder from another category
+ let c1=pick(cats), c2=pick(cats);
+ while(c2===c1)c2=pick(cats);
+ let a=pick(vocab[c1]), b=pick(vocab[c1]);
+ while(b===a)b=pick(vocab[c1]);
+ let odd=pick(vocab[c2]);
+ while(odd===a||odd===b)odd=pick(vocab[c2]);
+ const words=shuffle([a,b,odd]);
+ return [words,words.indexOf(odd),
+   `"${a}" e "${b}" pertencem à categoria "${c1}". "${odd}" pertence a outra categoria e é a intrusa.`];
 }
 
 /* SECTION 5 — rotation vs mirror. Use asymmetric letters and multiple
    repeated base letters across the 2 vertical pairs. A match means the
    lower glyph is a pure rotation; a mirrored glyph never counts. */
-const spatialLetters=["F","L","P","R","G","J","K","E","C","T"];
+const spatialLetters=["F","L","P","R","G","J","K","E","C","T","B","D","H"];
+
+function rotateLetter(letter,deg){
+  return {letter,deg};
+}
+
+function mirrorLetter(letter,deg=0){
+  return {letter,deg,mirror:true};
+}
+
 function makeSpatial(){
- const p=[];
- let repeated=pick(spatialLetters);
- for(let i=0;i<2;i++){
-   let top=Math.random()<.7?repeated:pick(spatialLetters);
-   let mode=Math.random();
-   let transform;
-   let match;
-   if(mode<.55){
-     transform=pick(["rotate(90deg)","rotate(180deg)","rotate(270deg)"]);
-     match=true;
-   }else if(mode<.82){
-     transform=pick(["scaleX(-1)","scaleY(-1)","rotate(90deg) scaleX(-1)","rotate(270deg) scaleX(-1)"]);
-     match=false;
-   }else{
-     let other=pick(spatialLetters); while(other===top)other=pick(spatialLetters);
-     transform="none"; match=false; top=top; p.push({top,lower:other,transform,match}); continue;
-   }
-   p.push({top,lower:top,transform,match});
- }
- return [p,p.filter(x=>x.match).length];
+  const letters=spatialLetters;
+
+  function pair(){
+    const top=pick(letters);
+    const r=Math.random();
+
+    // Keep the official-style mechanic: two vertical pairs, rotation only.
+    // Increase difficulty by using visible rotations and mirror distractors.
+    if(r<0.18) return {top,bottom:top,deg:0,match:true};
+    if(r<0.38) return {top,bottom:top,deg:90,match:true};
+    if(r<0.58) return {top,bottom:top,deg:180,match:true};
+    if(r<0.76) return {top,bottom:top,deg:270,match:true};
+    if(r<0.88) return {top,bottom:top,deg:0,mirror:true,match:false};
+
+    // Non-matching distractor: deliberately choose a visually related
+    // asymmetric letter where the answer cannot be obtained by rotation.
+    const related={
+      F:["E","L","P"], E:["F","L","P"], L:["F","E","P"],
+      P:["R","B","D"], R:["P","B","D"], B:["P","R","D"], D:["B","P","R"],
+      G:["C","E","J"], C:["G","E","J"], J:["G","C","L"],
+      K:["H","R","P"], H:["K","L","E"], T:["F","L","K"]
+    };
+    const candidates=(related[top]||letters).filter(x=>x!==top);
+    const bottom=pick(candidates.length?candidates:letters.filter(x=>x!==top));
+    return {top,bottom,deg:0,match:false};
+  }
+
+  const pairs=[pair(),pair()];
+  return [pairs,pairs.filter(p=>p.match).length];
 }
 
 function buildData(){
@@ -204,13 +321,13 @@ function buildData(){
  data.word=Array.from({length:8},makeWord);
  data.spatial=Array.from({length:8},makeSpatial);
 }
-let sec=0,q=0,score=0,answered=0,mode="training",timerId=null,startTime=0,endTime=0,questionStart=0,questionTimes=[],reasonStage="memorize",results=[];
+let sec=0,q=0,score=0,answered=0,mode="training",timerId=null,startTime=0,endTime=0,questionStart=0,questionTimes=[],reasonStage="memorize",results=[],testFinished=false,answerLog=[];
 
 function start(){
  mode=document.querySelector('input[name="mode"]:checked').value;
  document.getElementById("intro").classList.add("hidden");
  document.getElementById("app").classList.remove("hidden");
- sec=0;q=0;results=[];buildData();beginSection();
+ sec=0;q=0;results=[];answerLog=[];testFinished=false;buildData();beginSection();
 }
 function beginSection(){
  q=0;score=0;answered=0;questionTimes=[];reasonStage="memorize";
@@ -238,8 +355,15 @@ function render(reset=true){
 }
 function renderReasoning(){
  const x=data.reasoning[q];
- if(reasonStage==="memorize")return `<div class="card"><h3>Leia e memorize</h3><p style="font-size:25px">${x[0]}</p><button onclick="reasonQuestion()">Pronto — ver pergunta</button></div>`;
- return `<div class="card"><h3>${x[1]}</h3><div class="opts"><button onclick="answerReason(0)">${x[2]}</button><button onclick="answerReason(1)">${x[3]}</button></div>${mode==="training"?`<br><button class="secondary" onclick="skipQuestion()">Próxima questão</button>`:""}</div>`;
+ if(reasonStage==="memorize")
+   return `<div class="card"><h3>Leia e memorize</h3><p style="font-size:25px">${x[0]}</p><button onclick="reasonQuestion()">Pronto — ver pergunta</button></div>`;
+ return `<div class="card"><h3>${x[1]}</h3>
+   <div class="opts">
+     <button onclick="answerReason(0)">${x[2]}</button>
+     <button onclick="answerReason(1)">${x[3]}</button>
+   </div>
+   ${mode==="training"?`<br><button class="secondary" onclick="skipQuestion()">Próxima questão</button>`:""}
+ </div>`;
 }
 function reasonQuestion(){reasonStage="question";render(false);}
 function renderPerceptual(){
@@ -265,39 +389,294 @@ function renderWord(){
 }
 function renderSpatial(){
  const x=data.spatial[q],pairs=x[0];
- return `<div class="spatial">${pairs.map(p=>`<div class="col"><span class="glyph">${p.top}</span><span class="glyph" style="transform:${p.transform}">${p.lower}</span></div>`).join("")}</div>
- <p><b>Quantos dos 2 pares podem ser obtidos apenas por rotação?</b></p><p class="small">Espelhamento/reflexão não conta como rotação.</p>
+ return `<div class="spatial-pairs">
+   ${pairs.map(p=>`<div class="spatial-pair">
+     <div class="spatial-cell"><span class="spatial-letter">${p.top}</span></div>
+     <div class="spatial-cell"><span class="spatial-letter" style="display:inline-block;transform:${p.mirror?"scaleX(-1) ":""}rotate(${p.deg||0}deg)">${p.bottom}</span></div>
+   </div>`).join("")}
+ </div>
+ <p><b>Quantos dos 2 pares podem ser obtidos apenas por rotação?</b></p>
+ <p class="small">Compare a forma visual. Espelhamento/reflexão não conta como rotação.</p>
  <div class="opts">${[0,1,2].map(i=>`<button onclick="answer(${i},${x[1]})">${i}</button>`).join("")}</div>
  ${mode==="training"?`<br><button class="secondary" onclick="skipQuestion()">Próxima questão</button>`:""}`;
 }
 function recordQuestionTime(){questionTimes.push((performance.now()-questionStart)/1000);}
-function skipQuestion(){if(mode==="training"){recordQuestionTime();nextQ();}}
-function answerReason(i){answered++;if(i===data.reasoning[q][4])score++;recordQuestionTime();nextQ();}
-function answer(i,ans){answered++;if(i===ans)score++;recordQuestionTime();nextQ();}
+function currentElapsed(){return (performance.now()-questionStart)/1000;}
+
+function persistAnswer(entry){
+  answerLog.push({
+    section: entry.section,
+    sectionIndex: sec,
+    questionNumber: entry.number,
+    type: entry.type,
+    question: entry.question || "",
+    statement: entry.statement || "",
+    chosen: entry.chosen,
+    correct: entry.correct,
+    isCorrect: !!entry.isCorrect,
+    explanation: entry.explanation || "",
+    snapshot: entry.snapshot || null
+  });
+}
+
+function addWrong(item){
+  if(item && item.correct===false){
+    results._pendingWrong = results._pendingWrong || [];
+    results._pendingWrong.push(item);
+  }
+}
+
+function skipQuestion(){
+  if(mode==="training"){
+    recordQuestionTime();
+    nextQ();
+  }
+}
+
+function answerReason(i){
+  const x=data.reasoning[q];
+  const correct=(i===x[4]);
+  answered++;
+  if(correct)score++;
+  recordQuestionTime();
+
+  persistAnswer({
+    section:sections[sec].name,
+    number:q+1,
+    type:"reasoning",
+    statement:x[0],
+    question:x[1],
+    chosen:i===0?x[2]:x[3],
+    correct:x[4]===0?x[2]:x[3],
+    isCorrect:correct,
+    explanation:correct
+      ? ""
+      : `A sentença diz: "${x[0]}". Para a pergunta "${x[1]}", a pessoa correta é ${x[4]===0?x[2]:x[3]}.`
+  });
+
+  if(!correct){
+    addWrong({
+      section:sections[sec].name,
+      number:q+1,
+      type:"reasoning",
+      question:x[1],
+      statement:x[0],
+      chosen:i===0?x[2]:x[3],
+      correct:x[4]===0?x[2]:x[3],
+      explanation:`A sentença diz: "${x[0]}". Para a pergunta "${x[1]}", a pessoa correta é ${x[4]===0?x[2]:x[3]}.`,
+      correct:false
+    });
+  }
+  nextQ();
+}
+
+function answer(i,ans){
+  const s=sections[sec], x=data[s.type][q];
+  const correct=(i===ans);
+  answered++;
+  if(correct)score++;
+  recordQuestionTime();
+
+  let entry={
+    section:s.name,
+    number:q+1,
+    type:s.type,
+    chosen:i,
+    correct:ans,
+    question:"",
+    explanation:"",
+    isCorrect:correct
+  };
+
+  if(s.type==="perceptual"){
+    entry.question="Quantos pares verticais contêm a mesma letra?";
+    entry.chosen=String(i);
+    entry.correct=String(ans);
+    entry.snapshot={type:"perceptual",pairs:x[0].map((top,n)=>({
+      pair:n+1,
+      top,
+      bottom:x[1][n],
+      match:top.toLowerCase()===x[1][n].toLowerCase()
+    }))};
+    entry.perceptualPairs=entry.snapshot.pairs;
+    entry.explanation=`Compare as 4 colunas verticalmente. Maiúsculas e minúsculas são equivalentes. O total correto é ${ans}.`;
+  }else if(s.type==="number"){
+    entry.question=`Números apresentados: ${x[0].join(" — ")}.`;
+    entry.chosen=String(x[0][i]);
+    entry.correct=String(x[0][ans]);
+    const sorted=[...x[0]].sort((a,b)=>a-b);
+    const low=sorted[0], mid=sorted[1], high=sorted[2];
+    const dh=Math.abs(high-mid), dl=Math.abs(mid-low);
+    entry.explanation=`Menor=${low}, intermediário=${mid}, maior=${high}. Distância do maior ao intermediário: ${dh}. Distância do menor ao intermediário: ${dl}. A resposta correta é ${x[0][ans]}.`;
+  }else if(s.type==="word"){
+    entry.question="Qual palavra não pertence ao grupo?";
+    entry.chosen=x[0][i];
+    entry.correct=x[0][ans];
+    entry.explanation=x[2] || `A intrusa correta é "${x[0][ans]}".`;
+  }else if(s.type==="spatial"){
+    entry.question="Quantos dos 2 pares podem ser obtidos apenas por rotação?";
+    entry.chosen=String(i);
+    entry.correct=String(ans);
+    entry.snapshot={type:"spatial",pairs:x[0].map((p,n)=>({
+      pair:n+1,
+      top:p.top,
+      bottom:p.bottom,
+      rotation:p.deg||0,
+      mirrored:!!p.mirror,
+      canMatchByRotation:!!p.match
+    }))};
+    entry.spatialPairs=entry.snapshot.pairs;
+    entry.explanation=`Conte somente os pares em que a letra inferior pode coincidir com a superior por rotação. Espelhamento/reflexão não conta. Total correto: ${ans}.`;
+  }
+
+  if(correct) entry.explanation="";
+  persistAnswer(entry);
+
+  if(!correct){
+    addWrong(Object.assign({correct:false},entry));
+  }
+  nextQ();
+}
+
 function nextQ(){
  q++;reasonStage="memorize";
  if(q>=8){finishSection();return;}
  render(true);
 }
-function finishSection(){
- clearInterval(timerId);
- const elapsed=(performance.now()-startTime)/1000;
- results.push({name:sections[sec].name,score,answered,elapsed,time:sections[sec].time,questionTimes:[...questionTimes]});
- sec++;
- if(sec<sections.length)beginSection();else showResults();
+function commitCurrentSection(){
+  const elapsed=(performance.now()-startTime)/1000;
+  results.push({
+    name:sections[sec].name,
+    score,
+    answered,
+    elapsed,
+    time:sections[sec].time,
+    questionTimes:[...questionTimes],
+    wrongs:answerLog.filter(w=>w.sectionIndex===sec && !w.isCorrect).map(w=>({
+    ...w,
+    chosen: w.chosen===undefined ? "—" : w.chosen,
+    correct: w.correct===undefined ? "—" : w.correct,
+    explanation: w.explanation || "A resposta escolhida não corresponde à regra da questão."
+  }))
+  });
+  results._pendingWrong=[];
 }
-function showResults(){
+
+function finishSection(){
+  if(testFinished)return;
+  clearInterval(timerId);
+  commitCurrentSection();
+  sec++;
+  if(sec<sections.length)beginSection();else showResults(false);
+}
+
+function interruptTest(){
+  if(testFinished)return;
+  clearInterval(timerId);
+  commitCurrentSection();
+  testFinished=true;
+  showResults(true);
+}
+
+function renderReviewPerceptual(snapshot,chosen,correct){
+  const pairs=(snapshot&&snapshot.pairs)||[];
+  return `<div class="card">
+    <p><b>Reprodução exata da questão:</b></p>
+    <div class="perceptual">${pairs.map(p=>`<div class="cell">${p.top}<br>${p.bottom}</div>`).join("")}</div>
+    <p><b>Quantos dos 4 pares verticais contêm a mesma letra?</b></p>
+    <p class="small">Maiúsculas e minúsculas contam como a mesma letra.</p>
+    <div class="opts">${[0,1,2,3,4].map(i=>`<button disabled style="${String(i)===String(chosen)?'border:3px solid #c0392b;background:#fde8e7;color:#b42318;font-weight:700;':''}${String(i)===String(correct)?'border:3px solid #087443;background:#e8f5ee;color:#087443;font-weight:700;':''}">${i}</button>`).join("")}</div>
+    <p><b>Sua escolha:</b> <span style="color:#b42318">${chosen}</span> &nbsp; <b>Correta:</b> <span style="color:#087443">${correct}</span></p>
+    <div style="margin-top:10px">${pairs.map(p=>`<div style="margin:4px 0 0 12px"><b>Par ${p.pair}:</b> ${p.top} / ${p.bottom} &nbsp;|&nbsp; ${p.match?"mesma letra":"letras diferentes"}</div>`).join("")}</div>
+  </div>`;
+}
+
+function renderReviewSpatial(snapshot,chosen,correct){
+  const pairs=(snapshot&&snapshot.pairs)||[];
+  return `<div class="card">
+    <p><b>Reprodução exata da questão:</b></p>
+    <div class="spatial-pairs">
+      ${pairs.map(p=>`<div class="spatial-pair">
+        <div class="spatial-cell"><span class="spatial-letter">${p.top}</span></div>
+        <div class="spatial-cell"><span class="spatial-letter" style="display:inline-block;transform:${p.mirrored?"scaleX(-1) ":""}rotate(${p.rotation||0}deg)">${p.bottom}</span></div>
+      </div>`).join("")}
+    </div>
+    <p><b>Quantos dos 2 pares podem ser obtidos apenas por rotação?</b></p>
+    <p class="small">Compare a forma visual. Espelhamento/reflexão não conta como rotação.</p>
+    <div class="opts">${[0,1,2].map(i=>`<button disabled style="${String(i)===String(chosen)?'border:3px solid #c0392b;background:#fde8e7;color:#b42318;font-weight:700;':''}${String(i)===String(correct)?'border:3px solid #087443;background:#e8f5ee;color:#087443;font-weight:700;':''}">${i}</button>`).join("")}</div>
+    <p><b>Sua escolha:</b> <span style="color:#b42318">${chosen}</span> &nbsp; <b>Correta:</b> <span style="color:#087443">${correct}</span></p>
+    <div style="margin-top:10px">${pairs.map(p=>`<div style="margin:4px 0 0 12px"><b>Par ${p.pair}:</b> ${p.top} → ${p.bottom} &nbsp;|&nbsp; rotação: ${p.rotation}°${p.mirrored?" + espelhamento":""} &nbsp;|&nbsp; ${p.canMatchByRotation?"pode coincidir por rotação":"não pode coincidir apenas por rotação"}</div>`).join("")}</div>
+  </div>`;
+}
+
+function showErrorReview(){
+  const wrongs=answerLog.filter(w=>!w.isCorrect);
+  let html=`<h2 class="purple">Revisão das questões erradas</h2>
+    <p>Foram consideradas somente as questões efetivamente respondidas.</p>`;
+  if(!wrongs.length){
+    html+=`<div class="card"><b>Nenhuma questão errada.</b><p>Você acertou todas as questões respondidas.</p></div>`;
+  }else{
+    wrongs.forEach((w,idx)=>{
+      html+=`<div class="card q" style="border-left:5px solid #c0392b">
+        <b>${idx+1}. ${w.section} — Questão ${w.questionNumber}</b>
+        ${w.statement?`<p><b>Sentença apresentada:</b> ${w.statement}</p>`:""}
+        ${w.type==="perceptual" && w.snapshot ? renderReviewPerceptual(w.snapshot,w.chosen,w.correct) : ""}
+        ${w.type==="spatial" && w.snapshot ? renderReviewSpatial(w.snapshot,w.chosen,w.correct) : ""}
+        ${w.type!=="perceptual" && w.type!=="spatial" && w.question?`<p><b>Questão:</b> ${w.question}</p>`:""}
+        ${w.type!=="perceptual" && w.type!=="spatial" ? `<p><b>Sua resposta:</b> <span style="color:#b42318">${w.chosen===undefined?"—":w.chosen}</span></p>
+        <p><b>Resposta correta:</b> <span style="color:#087443">${w.correct===undefined?"—":w.correct}</span></p>` : ""}
+        <p><b>Onde você errou:</b> ${w.explanation || "A resposta escolhida não corresponde à regra da questão."}</p>
+      </div>`;
+    });
+  }
+  html+=`<div class="card" style="text-align:center">
+    <button class="secondary" onclick="showResults(false)">Voltar ao diagnóstico</button>
+  </div>`;
+  document.getElementById("content").innerHTML=html;
+  document.getElementById("timer").textContent="Revisão";
+}
+
+function showResults(interrupted){
  clearInterval(timerId);
+ testFinished=true;
  let total=0,correct=0,html=`<h2 class="purple">Diagnóstico</h2>`;
+ html+=`<p><b>${interrupted?"Teste interrompido pelo usuário.":"Teste concluído."}</b> Foram considerados somente os itens respondidos até o encerramento.</p>`;
+
  results.forEach(r=>{
   total+=r.answered;correct+=r.score;
-  const pct=Math.round(r.score/8*100);
+  const pct=r.answered?Math.round(r.score/r.answered*100):0;
   const avg=r.questionTimes.length?r.questionTimes.reduce((a,b)=>a+b,0)/r.questionTimes.length:0;
-  html+=`<div class="q"><b>${r.name}</b><br>${r.score}/8 corretas (${pct}%) · ${r.answered} respondidas · <b>Tempo total: ${r.elapsed.toFixed(2)} s</b> · Média por questão: ${avg.toFixed(2)} s
+  html+=`<div class="q"><b>${r.name}</b><br>${r.score}/${r.answered} corretas (${pct}%) · ${r.answered} respondidas · <b>Tempo total: ${r.elapsed.toFixed(2)} s</b> · Média por questão: ${avg.toFixed(2)} s
   <div class="bar"><div class="fill" style="width:${pct}%"></div></div>
   <details><summary>Tempo por questão</summary><p>${r.questionTimes.map((t,i)=>`Q${i+1}: ${t.toFixed(2)} s`).join(" · ")}</p></details></div>`;
  });
- html+=`<div class="card result"><div class="score">${correct}/${results.length*8}</div><p>Total de acertos nas questões respondidas.</p><p><b>Tempo total do teste: ${results.reduce((a,r)=>a+r.elapsed,0).toFixed(2)} s</b></p><p class="small">Use o modo sem pressão para descobrir quais operações consomem mais tempo; depois repita no modo cronometrado.</p></div>`;
+
+ const wrongs=results.flatMap(r=>r.wrongs||[]);
+ html+=`<div class="card result"><div class="score">${correct}/${total}</div><p>Total de acertos nas questões respondidas.</p><p><b>Tempo total considerado: ${results.reduce((a,r)=>a+r.elapsed,0).toFixed(2)} s</b></p></div>`;
+
+ html+=`<div class="card"><h2 class="purple">Questões erradas e seu erro</h2>`;
+ if(!wrongs.length){
+   html+=`<p><b>Nenhuma questão errada entre as questões respondidas.</b></p>`;
+ }else{
+   wrongs.forEach((w,idx)=>{
+     html+=`<div class="q" style="border-left:5px solid #c0392b">
+       <b>${idx+1}. ${w.section} — Questão ${w.number}</b>
+       ${w.statement?`<p><b>Sentença apresentada:</b> ${w.statement}</p>`:""}
+       ${w.type==="perceptual" && w.snapshot ? renderReviewPerceptual(w.snapshot,w.chosen,w.correct) : ""}
+       ${w.type==="spatial" && w.snapshot ? renderReviewSpatial(w.snapshot,w.chosen,w.correct) : ""}
+       <p><b>Questão:</b> ${w.question || "—"}</p>
+       <p><b>Você respondeu:</b> <span style="color:#b42318">${w.chosen}</span></p>
+       <p><b>Resposta correta:</b> <span style="color:#087443">${w.correct}</span></p>
+       <p><b>Onde você errou:</b> ${w.explanation || "A resposta escolhida não corresponde à regra da questão."}</p>
+     </div>`;
+   });
+ }
+ html+=`</div>`;
+
+ html+=`<div class="card" style="text-align:center">
+          <button class="primary" id="btn-review-errors" onclick="showErrorReview()">Ver questões erradas e meu erro</button>
+        </div>`;
+ html+=`<div class="card small">O modo "Treino sem pressão" permite estudar a mecânica e medir o tempo; o modo "Simulado cronometrado" usa os limites configurados na V4.8.</div>`;
  document.getElementById("content").innerHTML=html;
  document.getElementById("timer").textContent="Concluído";
 }
