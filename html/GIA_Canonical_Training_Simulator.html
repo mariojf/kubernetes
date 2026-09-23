@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>GIA — Treinamento V4.8 — 1000 variantes por seção</title>
+<title>GIA — Treinamento V4.8.1 — 1000 variantes por seção</title>
 <style>
 body{font-family:Arial,Helvetica,sans-serif;background:#f3f3f5;margin:0;color:#222}
 .wrap{max-width:1000px;margin:24px auto;padding:0 16px}.card{background:#fff;border-radius:14px;padding:24px;box-shadow:0 2px 12px #0001;margin-bottom:18px}
@@ -28,7 +28,7 @@ button.secondary{background:#ddd;color:#222}.hidden{display:none}.q{border:1px s
 <body>
 <div class="wrap">
 <div class="card" id="intro">
-<h1><span class="purple">Simulador GIA — Treinamento V4.8</span></h1>
+<h1><span class="purple">Simulador GIA — Treinamento V4.8.1</span></h1>
 <p><b>Banco procedural de treinamento.</b> As questões são geradas localmente a partir de regras e vocabulários originais de treino; não são cópias de itens proprietários.</p>
 <ul>
 <li>Seção 1 — Raciocínio: 8 itens / 30 s</li>
@@ -272,7 +272,7 @@ function makeWord(){
 /* SECTION 5 — rotation vs mirror. Use asymmetric letters and multiple
    repeated base letters across the 2 vertical pairs. A match means the
    lower glyph is a pure rotation; a mirrored glyph never counts. */
-const spatialLetters=["F","L","P","R","G","J","K","E","C","T","B","D","H"];
+const spatialLetters=["F","L","P","R","G","J","E"];
 
 function rotateLetter(letter,deg){
   return {letter,deg};
@@ -676,7 +676,7 @@ function showResults(interrupted){
  html+=`<div class="card" style="text-align:center">
           <button class="primary" id="btn-review-errors" onclick="showErrorReview()">Ver questões erradas e meu erro</button>
         </div>`;
- html+=`<div class="card small">O modo "Treino sem pressão" permite estudar a mecânica e medir o tempo; o modo "Simulado cronometrado" usa os limites configurados na V4.8.</div>`;
+ html+=`<div class="card small">O modo "Treino sem pressão" permite estudar a mecânica e medir o tempo; o modo "Simulado cronometrado" usa os limites configurados na V4.8.1.</div>`;
  document.getElementById("content").innerHTML=html;
  document.getElementById("timer").textContent="Concluído";
 }
